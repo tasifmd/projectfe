@@ -1,5 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { HttpService } from 'src/app/service/http.service';
+import { MatSnackBar } from '@angular/material';
+import { error } from '@angular/compiler/src/util';
+
+
 
 @Component({
   selector: 'app-login',
@@ -7,15 +13,33 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
-  loginForm: FormGroup;
-  loginData : any;
-  'email'= new FormControl('',[Validators.required]);
-  'password'= new FormControl('',[Validators.required]);
-  constructor() { }
+  loginData: any;
+  'email' = new FormControl('', [Validators.required]);
+  'password' = new FormControl('', [Validators.required]);
+  constructor(private httpService: HttpService, private router: Router, private snackBar: MatSnackBar) { }
 
   ngOnInit() {
-    console.log("message");
-    console.log("message");
+
   }
 
+  login() {
+    this.loginData = {
+      "userEmail": this.email.value,
+      "password": this.password.value
+    };
+    this.httpService.postRequest("user/login", this.loginData).subscribe(
+      (response: any) => {
+        if (response.responseCode == 1000) {
+          localStorage.setItem('token', response.token);
+          this.router.navigate(['/dashboard']);
+          console.log("login success")
+          console.log(response)
+        }
+      },
+      error => {
+        console.log("Login failed")
+        this.snackBar.open("Login failed", "Close", { duration: 3000 });
+      }
+    );
+  }
 }
